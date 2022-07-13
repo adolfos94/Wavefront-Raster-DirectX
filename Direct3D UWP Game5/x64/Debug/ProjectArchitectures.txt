@@ -1,1 +1,0 @@
-D:\C++\DirectX\Direct3D UWP Game5\Direct3D UWP Game5\Direct3D UWP Game5.vcxproj;x64
