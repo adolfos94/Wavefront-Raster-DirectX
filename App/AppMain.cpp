@@ -14,19 +14,9 @@ AppMain::AppMain(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	// Register to be notified if the Device is lost or recreated
 	m_deviceResources->RegisterDeviceNotify(this);
 
-	// TODO: Replace this with your app's content initialization.
-	m_sceneRenderer = std::unique_ptr<Sample3DSceneRenderer>(new Sample3DSceneRenderer(m_deviceResources));
-
 	m_fpsTextRenderer = std::unique_ptr<SampleFpsTextRenderer>(new SampleFpsTextRenderer(m_deviceResources));
 
-	m_objRenderer = std::unique_ptr<WaveFrontRenderer>(new WaveFrontRenderer(m_deviceResources));
-
-	// TODO: Change the timer settings if you want something other than the default variable timestep mode.
-	// e.g. for 60 FPS fixed timestep update logic, call:
-	/*
-	m_timer.SetFixedTimeStep(true);
-	m_timer.SetTargetElapsedSeconds(1.0 / 60);
-	*/
+	m_waveFrontRenderer = std::unique_ptr<WaveFrontRenderer>(new WaveFrontRenderer(m_deviceResources));
 }
 
 AppMain::~AppMain()
@@ -38,9 +28,7 @@ AppMain::~AppMain()
 // Updates application state when the window size changes (e.g. device orientation change)
 void AppMain::CreateWindowSizeDependentResources()
 {
-	// TODO: Replace this with the size-dependent initialization of your app's content.
-	m_sceneRenderer->CreateWindowSizeDependentResources();
-	m_objRenderer->CreateWindowSizeDependentResources();
+	m_waveFrontRenderer->CreateWindowSizeDependentResources();
 }
 
 // Updates the application state once per frame.
@@ -49,9 +37,7 @@ void AppMain::Update()
 	// Update scene objects.
 	m_timer.Tick([&]()
 		{
-			// TODO: Replace this with your app's content update functions.
-			m_sceneRenderer->Update(m_timer);
-			m_objRenderer->Update(m_timer);
+			m_waveFrontRenderer->Update(m_timer);
 			m_fpsTextRenderer->Update(m_timer);
 		});
 }
@@ -81,10 +67,8 @@ bool AppMain::Render()
 	context->ClearDepthStencilView(m_deviceResources->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	// Render the scene objects.
-	// TODO: Replace this with your app's content rendering functions.
-	//m_sceneRenderer->Render();
 	m_fpsTextRenderer->Render();
-	m_objRenderer->Render();
+	m_waveFrontRenderer->Render();
 
 	return true;
 }
@@ -92,16 +76,14 @@ bool AppMain::Render()
 // Notifies renderers that device resources need to be released.
 void AppMain::OnDeviceLost()
 {
-	m_sceneRenderer->ReleaseDeviceDependentResources();
-	m_objRenderer->ReleaseDeviceDependentResources();
+	m_waveFrontRenderer->ReleaseDeviceDependentResources();
 	m_fpsTextRenderer->ReleaseDeviceDependentResources();
 }
 
 // Notifies renderers that device resources may now be recreated.
 void AppMain::OnDeviceRestored()
 {
-	m_sceneRenderer->CreateDeviceDependentResources();
-	m_objRenderer->CreateDeviceDependentResources();
+	m_waveFrontRenderer->CreateDeviceDependentResources();
 	m_fpsTextRenderer->CreateDeviceDependentResources();
 	CreateWindowSizeDependentResources();
 }

@@ -2,7 +2,6 @@
 
 #include "Common\StepTimer.h"
 #include "Common\DeviceResources.h"
-#include "Content\Sample3DSceneRenderer.h"
 #include "Content\SampleFpsTextRenderer.h"
 #include "Content\WaveFrontRenderer.h"
 
@@ -27,9 +26,8 @@ namespace App
 		std::shared_ptr<DX::DeviceResources>	m_deviceResources;
 
 		// TODO: Replace with your own content renderers.
-		std::unique_ptr<Sample3DSceneRenderer>	m_sceneRenderer;
 		std::unique_ptr<SampleFpsTextRenderer>	m_fpsTextRenderer;
-		std::unique_ptr<WaveFrontRenderer>		m_objRenderer;
+		std::unique_ptr<WaveFrontRenderer>		m_waveFrontRenderer;
 
 		// Rendering loop timer.
 		DX::StepTimer m_timer;
