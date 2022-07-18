@@ -40,6 +40,7 @@ void AppMain::CreateWindowSizeDependentResources()
 {
 	// TODO: Replace this with the size-dependent initialization of your app's content.
 	m_sceneRenderer->CreateWindowSizeDependentResources();
+	m_objRenderer->CreateWindowSizeDependentResources();
 }
 
 // Updates the application state once per frame.
@@ -50,6 +51,7 @@ void AppMain::Update()
 		{
 			// TODO: Replace this with your app's content update functions.
 			m_sceneRenderer->Update(m_timer);
+			m_objRenderer->Update(m_timer);
 			m_fpsTextRenderer->Update(m_timer);
 		});
 }
@@ -80,8 +82,9 @@ bool AppMain::Render()
 
 	// Render the scene objects.
 	// TODO: Replace this with your app's content rendering functions.
-	m_sceneRenderer->Render();
+	//m_sceneRenderer->Render();
 	m_fpsTextRenderer->Render();
+	m_objRenderer->Render();
 
 	return true;
 }
@@ -90,6 +93,7 @@ bool AppMain::Render()
 void AppMain::OnDeviceLost()
 {
 	m_sceneRenderer->ReleaseDeviceDependentResources();
+	m_objRenderer->ReleaseDeviceDependentResources();
 	m_fpsTextRenderer->ReleaseDeviceDependentResources();
 }
 
@@ -97,6 +101,7 @@ void AppMain::OnDeviceLost()
 void AppMain::OnDeviceRestored()
 {
 	m_sceneRenderer->CreateDeviceDependentResources();
+	m_objRenderer->CreateDeviceDependentResources();
 	m_fpsTextRenderer->CreateDeviceDependentResources();
 	CreateWindowSizeDependentResources();
 }

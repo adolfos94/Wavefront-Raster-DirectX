@@ -15,6 +15,7 @@ namespace App
 		void CreateDeviceDependentResources();
 		void CreateWindowSizeDependentResources();
 		void ReleaseDeviceDependentResources();
+		void Update(DX::StepTimer const& timer);
 		void Render();
 
 	private:
@@ -45,5 +46,6 @@ namespace App
 
 		// Variables used with the rendering loop.
 		bool	m_loadingComplete;
+		float	m_degreesPerSecond;
 	};
 }

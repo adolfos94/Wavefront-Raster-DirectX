@@ -8,9 +8,81 @@ using namespace App;
 using namespace DirectX;
 using namespace Windows::Foundation;
 
+// Called once per frame, rotates the mesh and calculates the model matrices.
+void WaveFrontRenderer::Update(DX::StepTimer const& timer)
+{
+	// Convert degrees to radians, then convert seconds to rotation angle
+	float radiansPerSecond = XMConvertToRadians(m_degreesPerSecond);
+	double totalRotation = timer.GetTotalSeconds() * radiansPerSecond;
+	float radians = static_cast<float>(fmod(totalRotation, XM_2PI));
+
+	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(radians)));
+}
+
 // Renders one frame using the vertex and pixel shaders.
 void WaveFrontRenderer::Render()
 {
+	// Loading is asynchronous. Only draw geometry after it's loaded.
+	if (!m_loadingComplete || !m_indexCount)
+		return;
+
+	// Pipeline state and generate rendering commands using the resources owned by a device
+	auto context = m_deviceResources->GetD3DDeviceContext();
+
+	// Prepare the constant buffer to send it to the graphics device.
+	context->UpdateSubresource1(
+		m_constantBuffer.Get(),
+		0,
+		NULL,
+		&m_constantBufferData,
+		0,
+		0,
+		0);
+
+	// Each vertex is one instance of the VertexPositionColor struct.
+	UINT stride = sizeof(VertexPositionColor);
+	UINT offset = 0;
+	context->IASetVertexBuffers(
+		0,
+		1,
+		m_vertexBuffer.GetAddressOf(),
+		&stride,
+		&offset);
+
+	// Each index is one 16-bit unsigned integer (short).
+	context->IASetIndexBuffer(
+		m_indexBuffer.Get(),
+		DXGI_FORMAT_R16_UINT,
+		0);
+
+	// Bind information about the primitive type, and data order that describes input data for the input.
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// Describe the input - buffer data for the input vertexes.
+	context->IASetInputLayout(m_inputLayout.Get());
+
+	// Attach the vertex shader.
+	context->VSSetShader(
+		m_vertexShader.Get(),
+		nullptr,
+		0);
+
+	// Attach the pixel shader.
+	context->PSSetShader(
+		m_pixelShader.Get(),
+		nullptr,
+		0);
+
+	// Send the constant buffer to the graphics device.
+	context->VSSetConstantBuffers1(
+		0,
+		1,
+		m_constantBuffer.GetAddressOf(),
+		nullptr,
+		nullptr);
+
+	// Draw the objects.
+	context->DrawIndexed(m_indexCount, 0, 0);
 }
 
 // Create the vertex shader and input layout.
@@ -166,7 +238,7 @@ void WaveFrontRenderer::CreateDeviceDependentResources()
 		});
 }
 
-// Initializes view parameters when the window size changes.
+// Initializes view parameters and Constant Buffer Data.
 void WaveFrontRenderer::CreateWindowSizeDependentResources()
 {
 	Size outputSize = m_deviceResources->GetOutputSize();
@@ -217,6 +289,7 @@ void WaveFrontRenderer::ReleaseDeviceDependentResources()
 WaveFrontRenderer::WaveFrontRenderer(
 	const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	m_indexCount(0),
+	m_degreesPerSecond(45),
 	m_loadingComplete(false),
 	m_deviceResources(deviceResources)
 {
