@@ -52,7 +52,7 @@ void WaveFrontRenderer::Render()
 	// Each index is one 16-bit unsigned integer (short).
 	context->IASetIndexBuffer(
 		m_indexBuffer.Get(),
-		DXGI_FORMAT_R16_UINT,
+		DXGI_FORMAT_R32_UINT,
 		0);
 
 	// Bind information about the primitive type, and data order that describes input data for the input.
@@ -184,7 +184,7 @@ Concurrency::task<void> WaveFrontRenderer::CreateMesh(
 			// For example: 0,2,1 means that the vertices with indexes
 			// 0, 2 and 1 from the vertex buffer compose the
 			// first triangle of this mesh.
-			static const unsigned short cubeIndices[] =
+			static const uint32_t cubeIndices[] =
 			{
 				0,2,1, // -x
 				1,2,3,
