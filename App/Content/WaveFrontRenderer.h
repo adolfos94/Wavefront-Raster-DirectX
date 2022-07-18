@@ -15,13 +15,7 @@ namespace App
 		void CreateDeviceDependentResources();
 		void CreateWindowSizeDependentResources();
 		void ReleaseDeviceDependentResources();
-		void TrackingUpdate(float positionX);
-		void Update(DX::StepTimer const& timer);
 		void Render();
-		void StartTracking();
-		void StopTracking();
-
-		bool IsTracking() { return m_tracking; }
 
 	private:
 
@@ -51,6 +45,5 @@ namespace App
 
 		// Variables used with the rendering loop.
 		bool	m_loadingComplete;
-		bool	m_tracking;
 	};
 }
