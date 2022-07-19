@@ -8,6 +8,8 @@ using namespace App;
 using namespace DirectX;
 using namespace Windows::Foundation;
 
+const XMFLOAT3 Color = XMFLOAT3(1.0, 0.0, 0.0);
+
 // Called once per frame, rotates the mesh and calculates the model matrices.
 void WaveFrontRenderer::Update(DX::StepTimer const& timer)
 {
@@ -23,7 +25,7 @@ void WaveFrontRenderer::Update(DX::StepTimer const& timer)
 void WaveFrontRenderer::Render()
 {
 	// Loading is asynchronous. Only draw geometry after it's loaded.
-	if (!m_loadingComplete || !m_indexCount)
+	if (!m_loadingComplete || !m_vertexCount || !m_indexCount)
 		return;
 
 	// Pipeline state and generate rendering commands using the resources owned by a device
@@ -150,28 +152,29 @@ Concurrency::task<void> WaveFrontRenderer::CreateMesh(
 {
 	return (vertexShaderTask && pixelShaderTask).then([this]()
 		{
+			// TODO: Replace this with the WaveFrontVertexes
 			m_waveFrontReader = std::unique_ptr<WaveFrontReader<uint32_t>>(new WaveFrontReader<uint32_t>());
 			m_waveFrontReader->Load(L"./Assets/impart.txt");
 
-			// TODO: Replace this with the WaveFrontVertexes
-			// Load mesh vertices. Each vertex has a position and a color.
-			static const VertexPositionColor cubeVertices[] =
-			{
-				{XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f)},
-				{XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f)},
-				{XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f)},
-				{XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f)},
-				{XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f)},
-				{XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f)},
-				{XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f)},
-				{XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f)},
+			// Mesh vertices.
+			static const std::vector<VertexPositionColor> meshVertices = {
+				{XMFLOAT3(-0.5f, -0.5f, -0.5f), Color},
+				{XMFLOAT3(-0.5f, -0.5f,  0.5f), Color},
+				{XMFLOAT3(-0.5f,  0.5f, -0.5f), Color},
+				{XMFLOAT3(-0.5f,  0.5f,  0.5f), Color},
+				{XMFLOAT3(0.5f, -0.5f, -0.5f), Color},
+				{XMFLOAT3(0.5f, -0.5f,  0.5f), Color},
+				{XMFLOAT3(0.5f,  0.5f, -0.5f), Color},
+				{XMFLOAT3(0.5f,  0.5f,  0.5f), Color},
 			};
+			m_vertexCount = meshVertices.size();
 
 			D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
-			vertexBufferData.pSysMem = cubeVertices;
+			vertexBufferData.pSysMem = meshVertices.data();
 			vertexBufferData.SysMemPitch = 0;
 			vertexBufferData.SysMemSlicePitch = 0;
-			CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
+
+			CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(VertexPositionColor) * m_vertexCount, D3D11_BIND_VERTEX_BUFFER);
 			DX::ThrowIfFailed(
 				m_deviceResources->GetD3DDevice()->CreateBuffer(
 					&vertexBufferDesc,
@@ -179,39 +182,34 @@ Concurrency::task<void> WaveFrontRenderer::CreateMesh(
 					&m_vertexBuffer)
 			);
 
-			// Load mesh indices. Each trio of indices represents
-			// a triangle to be rendered on the screen.
-			// For example: 0,2,1 means that the vertices with indexes
-			// 0, 2 and 1 from the vertex buffer compose the
-			// first triangle of this mesh.
-			static const uint32_t cubeIndices[] =
-			{
-				0,2,1, // -x
-				1,2,3,
+			// Mesh indices.
+			static const std::vector<uint32_t> meshIndices = {
+				0, 2, 1, // -x
+				1, 2, 3,
 
-				4,5,6, // +x
-				5,7,6,
+				4, 5, 6, // +x
+				5, 7, 6,
 
-				0,1,5, // -y
-				0,5,4,
+				0, 1, 5, // -y
+				0, 5, 4,
 
-				2,6,7, // +y
-				2,7,3,
+				2, 6, 7, // +y
+				2, 7, 3,
 
-				0,4,6, // -z
-				0,6,2,
+				0, 4, 6, // -z
+				0, 6, 2,
 
-				1,3,7, // +z
-				1,7,5,
+				1, 3, 7, // +z
+				1, 7, 5,
 			};
-
-			m_indexCount = ARRAYSIZE(cubeIndices);
+			m_indexCount = meshIndices.size();
 
 			D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
-			indexBufferData.pSysMem = cubeIndices;
+			indexBufferData.pSysMem = meshIndices.data();
 			indexBufferData.SysMemPitch = 0;
 			indexBufferData.SysMemSlicePitch = 0;
-			CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
+
+			CD3D11_BUFFER_DESC indexBufferDesc(sizeof(uint32_t) * m_indexCount, D3D11_BIND_INDEX_BUFFER);
 			DX::ThrowIfFailed(
 				m_deviceResources->GetD3DDevice()->CreateBuffer(
 					&indexBufferDesc,
@@ -289,6 +287,7 @@ void WaveFrontRenderer::ReleaseDeviceDependentResources()
 WaveFrontRenderer::WaveFrontRenderer(
 	const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	m_indexCount(0),
+	m_vertexCount(0),
 	m_degreesPerSecond(45),
 	m_loadingComplete(false),
 	m_deviceResources(deviceResources)

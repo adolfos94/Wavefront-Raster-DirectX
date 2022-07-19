@@ -42,7 +42,8 @@ namespace App
 		// System resources for geometry.
 		std::unique_ptr<WaveFrontReader<uint32_t>>	m_waveFrontReader;
 		ModelViewProjectionConstantBuffer			m_constantBufferData;
-		uint32	m_indexCount;
+		size_t m_vertexCount;
+		size_t m_indexCount;
 
 		// Variables used with the rendering loop.
 		bool	m_loadingComplete;
