@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "WaveFrontRenderer.h"
 
 #include "..\Common\DirectXHelper.h"
@@ -42,7 +42,7 @@ void WaveFrontRenderer::Render()
 		0);
 
 	// Each vertex is one instance of the VertexPositionColor struct.
-	UINT stride = sizeof(VertexPositionColor);
+	UINT stride = sizeof(VertexPositionNormal);
 	UINT offset = 0;
 	context->IASetVertexBuffers(
 		0,
@@ -105,8 +105,10 @@ Concurrency::task<void> WaveFrontRenderer::CreateVertexShaderLayout()
 			// Vertex Input Layout
 			static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 			{
-				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "NORMAL"	, 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "COLOR"	, 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+				//{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,	  0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			};
 			DX::ThrowIfFailed(
 				m_deviceResources->GetD3DDevice()->CreateInputLayout(
@@ -157,24 +159,17 @@ Concurrency::task<void> WaveFrontRenderer::CreateMesh(
 			m_waveFrontReader->Load(L"./Assets/impart.txt");
 
 			// Mesh vertices.
-			static const std::vector<VertexPositionColor> meshVertices = {
-				{XMFLOAT3(-0.5f, -0.5f, -0.5f), Color},
-				{XMFLOAT3(-0.5f, -0.5f,  0.5f), Color},
-				{XMFLOAT3(-0.5f,  0.5f, -0.5f), Color},
-				{XMFLOAT3(-0.5f,  0.5f,  0.5f), Color},
-				{XMFLOAT3(0.5f, -0.5f, -0.5f), Color},
-				{XMFLOAT3(0.5f, -0.5f,  0.5f), Color},
-				{XMFLOAT3(0.5f,  0.5f, -0.5f), Color},
-				{XMFLOAT3(0.5f,  0.5f,  0.5f), Color},
-			};
-			m_vertexCount = meshVertices.size();
+			m_vertexCount = m_waveFrontReader->vertices.size();
+
+			if (!m_vertexCount)
+				return;
 
 			D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
-			vertexBufferData.pSysMem = meshVertices.data();
+			vertexBufferData.pSysMem = m_waveFrontReader->vertices.data();
 			vertexBufferData.SysMemPitch = 0;
 			vertexBufferData.SysMemSlicePitch = 0;
 
-			CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(VertexPositionColor) * m_vertexCount, D3D11_BIND_VERTEX_BUFFER);
+			CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(VertexPositionNormal) * m_vertexCount, D3D11_BIND_VERTEX_BUFFER);
 			DX::ThrowIfFailed(
 				m_deviceResources->GetD3DDevice()->CreateBuffer(
 					&vertexBufferDesc,
@@ -183,29 +178,13 @@ Concurrency::task<void> WaveFrontRenderer::CreateMesh(
 			);
 
 			// Mesh indices.
-			static const std::vector<uint32_t> meshIndices = {
-				0, 2, 1, // -x
-				1, 2, 3,
+			m_indexCount = m_waveFrontReader->indices.size();
 
-				4, 5, 6, // +x
-				5, 7, 6,
-
-				0, 1, 5, // -y
-				0, 5, 4,
-
-				2, 6, 7, // +y
-				2, 7, 3,
-
-				0, 4, 6, // -z
-				0, 6, 2,
-
-				1, 3, 7, // +z
-				1, 7, 5,
-			};
-			m_indexCount = meshIndices.size();
+			if (!m_indexCount)
+				return;
 
 			D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
-			indexBufferData.pSysMem = meshIndices.data();
+			indexBufferData.pSysMem = m_waveFrontReader->indices.data();
 			indexBufferData.SysMemPitch = 0;
 			indexBufferData.SysMemSlicePitch = 0;
 
@@ -257,11 +236,13 @@ void WaveFrontRenderer::CreateWindowSizeDependentResources()
 	XMStoreFloat4x4(&m_constantBufferData.projection, XMMatrixTranspose(perspectiveMatrix));
 
 	// View Matrix
-	static const XMVECTORF32 eye = { 0.0f, 0.7f, 1.5f, 0.0f };
+	static const XMVECTORF32 eye = { 1.0f, 0.7f, 1.5f, 0.0f };
 	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
-	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
+	static const XMVECTORF32 up = { 0.0f,  1.0f, 0.0f, 0.0f };
 
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtRH(eye, at, up)));
+
+	m_constantBufferData;
 }
 
 // Release memory

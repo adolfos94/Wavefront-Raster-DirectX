@@ -89,5 +89,8 @@
     <Text Include="Assets\impart.txt">
       <Filter>Assets</Filter>
     </Text>
+    <Text Include="Assets\cube.txt">
+      <Filter>Assets</Filter>
+    </Text>
   </ItemGroup>
 </Project>

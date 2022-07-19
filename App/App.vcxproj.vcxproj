@@ -293,6 +293,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <Text Include="Assets\cube.txt" />
     <Text Include="Assets\impart.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

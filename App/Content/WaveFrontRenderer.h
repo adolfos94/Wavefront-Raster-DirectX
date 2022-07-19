@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "..\Common\DeviceResources.h"
 #include "..\Common\StepTimer.h"
