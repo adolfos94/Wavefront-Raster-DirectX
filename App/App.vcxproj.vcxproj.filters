@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">
@@ -83,6 +83,9 @@
     </Filter>
     <Filter Include="Assets">
       <UniqueIdentifier>{00195f3a-bcda-4b0b-a3b6-47038943b663}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{73949454-7651-49aa-82cd-18ef39d5981d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -47,6 +47,5 @@ namespace App
 
 		// Variables used with the rendering loop.
 		bool	m_loadingComplete;
-		float	m_degreesPerSecond;
 	};
 }

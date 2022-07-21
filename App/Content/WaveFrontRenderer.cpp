@@ -8,24 +8,17 @@ using namespace App;
 using namespace DirectX;
 using namespace Windows::Foundation;
 
-const XMFLOAT3 Color = XMFLOAT3(1.0, 0.0, 0.0);
-
 // Called once per frame, rotates the mesh and calculates the model matrices.
 void WaveFrontRenderer::Update(DX::StepTimer const& timer)
 {
-	// Convert degrees to radians, then convert seconds to rotation angle
-	float radiansPerSecond = XMConvertToRadians(m_degreesPerSecond);
-	double totalRotation = timer.GetTotalSeconds() * radiansPerSecond;
-	float radians = static_cast<float>(fmod(totalRotation, XM_2PI));
-
-	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(radians)));
+	XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixIdentity());
 }
 
 // Renders one frame using the vertex and pixel shaders.
 void WaveFrontRenderer::Render()
 {
 	// Loading is asynchronous. Only draw geometry after it's loaded.
-	if (!m_loadingComplete || !m_vertexCount || !m_indexCount)
+	if (!m_loadingComplete)
 		return;
 
 	// Pipeline state and generate rendering commands using the resources owned by a device
@@ -106,15 +99,14 @@ Concurrency::task<void> WaveFrontRenderer::CreateVertexShaderLayout()
 			static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 			{
 				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "NORMAL"	, 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "COLOR"	, 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-				//{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,	  0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "NORMAL"	, 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,	  0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			};
 			DX::ThrowIfFailed(
 				m_deviceResources->GetD3DDevice()->CreateInputLayout(
 					vertexDesc,
 					ARRAYSIZE(vertexDesc),
-					&fileData[0],
+					fileData.data(),
 					fileData.size(),
 					&m_inputLayout)
 			);
@@ -154,7 +146,6 @@ Concurrency::task<void> WaveFrontRenderer::CreateMesh(
 {
 	return (vertexShaderTask && pixelShaderTask).then([this]()
 		{
-			// TODO: Replace this with the WaveFrontVertexes
 			m_waveFrontReader = std::unique_ptr<WaveFrontReader<uint32_t>>(new WaveFrontReader<uint32_t>());
 			m_waveFrontReader->Load(L"./Assets/impart.txt");
 
@@ -236,13 +227,11 @@ void WaveFrontRenderer::CreateWindowSizeDependentResources()
 	XMStoreFloat4x4(&m_constantBufferData.projection, XMMatrixTranspose(perspectiveMatrix));
 
 	// View Matrix
-	static const XMVECTORF32 eye = { 1.0f, 0.7f, 1.5f, 0.0f };
+	static const XMVECTORF32 eye = { 1.0f, 0.7f, 0.1, 0.0f };
 	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
 	static const XMVECTORF32 up = { 0.0f,  1.0f, 0.0f, 0.0f };
 
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtRH(eye, at, up)));
-
-	m_constantBufferData;
 }
 
 // Release memory
@@ -269,7 +258,6 @@ WaveFrontRenderer::WaveFrontRenderer(
 	const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	m_indexCount(0),
 	m_vertexCount(0),
-	m_degreesPerSecond(45),
 	m_loadingComplete(false),
 	m_deviceResources(deviceResources)
 {

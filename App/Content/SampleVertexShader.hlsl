@@ -8,15 +8,14 @@ cbuffer ModelViewProjectionConstantBuffer : register(b0)
 struct VS_INPUT
 {
 	float3 pos		: POSITION;
-	float3 color	: COLOR0;
-	//float2 tex		: TEXCOORD0;
+	float3 normal	: NORMAL;
+	float2 texCoord	: TEXCOORD;
 };
 
 struct PS_INPUT
 {
 	float4 pos		: SV_POSITION;
 	float3 color	: COLOR0;
-	//float2 tex		: TEXCOORD0;
 };
 
 PS_INPUT main(VS_INPUT input)
@@ -28,9 +27,9 @@ PS_INPUT main(VS_INPUT input)
 	pos = mul(pos, view);
 	pos = mul(pos, projection);
 	output.pos = pos;
-	//output.color = float3(255, 0, 0);
-	//output.color = input.color;
-	//output.tex = input.tex;
+
+	float3 normal = float3(input.normal);
+	output.color = normal * 0.5 + 0.5;
 
 	return output;
 }

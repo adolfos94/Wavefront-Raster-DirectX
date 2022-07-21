@@ -11,6 +11,7 @@ namespace App
 	};
 
 	// Used to send per-vertex data to the vertex shader.
+	// WaveFrontReader<uint32_t>::Vertex
 	struct VertexPositionNormal
 	{
 		DirectX::XMFLOAT3 pos;
