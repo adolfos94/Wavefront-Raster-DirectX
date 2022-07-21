@@ -6,6 +6,8 @@
 using namespace App;
 
 using namespace DirectX;
+using namespace Windows::Storage;
+using namespace Windows::Storage::Pickers;
 using namespace Windows::Foundation;
 
 // Called once per frame, rotates the mesh and calculates the model matrices.
@@ -189,6 +191,17 @@ Concurrency::task<void> WaveFrontRenderer::CreateMesh(
 		});
 }
 
+Concurrency::task<void> WaveFrontRenderer::CreateOBJFile()
+{
+	FileOpenPicker^ filePicker = ref new FileOpenPicker();
+	filePicker->FileTypeFilter->Append(".txt");
+
+	auto loadOBJTask = Concurrency::create_task(filePicker->PickSingleFileAsync());
+	return loadOBJTask.then([this](StorageFile^ storageFileData)
+		{
+		});
+}
+
 // Initializes Meshes, Shaders and Render buffers
 void WaveFrontRenderer::CreateDeviceDependentResources()
 {
@@ -196,11 +209,14 @@ void WaveFrontRenderer::CreateDeviceDependentResources()
 	auto createVSTask = CreateVertexShaderLayout();
 	auto createPSTask = CreatePixelShaderLayout();
 
+	// Load wavefront asynchronously.
+	auto createOBJTask = CreateOBJFile();
+
 	// Create the mesh.
 	auto createMeshTask = CreateMesh(createVSTask, createPSTask);
 
 	// Once the mesh is loaded, the object is ready to be rendered.
-	createMeshTask.then([this]()
+	(createOBJTask && createMeshTask).then([this]()
 		{
 			m_loadingComplete = true;
 		});

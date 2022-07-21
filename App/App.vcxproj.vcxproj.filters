@@ -84,9 +84,6 @@
     <Filter Include="Assets">
       <UniqueIdentifier>{00195f3a-bcda-4b0b-a3b6-47038943b663}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{73949454-7651-49aa-82cd-18ef39d5981d}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Assets\impart.txt">

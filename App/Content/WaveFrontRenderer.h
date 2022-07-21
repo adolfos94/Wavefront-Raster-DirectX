@@ -24,6 +24,7 @@ namespace App
 
 		Concurrency::task<void> CreateVertexShaderLayout();
 		Concurrency::task<void> CreatePixelShaderLayout();
+		Concurrency::task<void> CreateOBJFile();
 		Concurrency::task<void> CreateMesh(
 			Concurrency::task<void>& vertexShaderTask,
 			Concurrency::task<void>& pixelShaderTask);

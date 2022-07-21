@@ -14,9 +14,8 @@ AppMain::AppMain(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	// Register to be notified if the Device is lost or recreated
 	m_deviceResources->RegisterDeviceNotify(this);
 
-	m_fpsTextRenderer = std::unique_ptr<SampleFpsTextRenderer>(new SampleFpsTextRenderer(m_deviceResources));
-
 	m_waveFrontRenderer = std::unique_ptr<WaveFrontRenderer>(new WaveFrontRenderer(m_deviceResources));
+	m_fpsTextRenderer = std::unique_ptr<SampleFpsTextRenderer>(new SampleFpsTextRenderer(m_deviceResources));
 }
 
 AppMain::~AppMain()
@@ -67,8 +66,8 @@ bool AppMain::Render()
 	context->ClearDepthStencilView(m_deviceResources->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	// Render the scene objects.
-	m_fpsTextRenderer->Render();
 	m_waveFrontRenderer->Render();
+	m_fpsTextRenderer->Render();
 
 	return true;
 }
