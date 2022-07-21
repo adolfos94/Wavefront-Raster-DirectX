@@ -210,13 +210,13 @@ void WaveFrontRenderer::CreateDeviceDependentResources()
 	auto createPSTask = CreatePixelShaderLayout();
 
 	// Load wavefront asynchronously.
-	auto createOBJTask = CreateOBJFile();
+	//auto createOBJTask = CreateOBJFile();
 
 	// Create the mesh.
 	auto createMeshTask = CreateMesh(createVSTask, createPSTask);
 
 	// Once the mesh is loaded, the object is ready to be rendered.
-	(createOBJTask && createMeshTask).then([this]()
+	(createMeshTask).then([this]()
 		{
 			m_loadingComplete = true;
 		});
@@ -225,29 +225,23 @@ void WaveFrontRenderer::CreateDeviceDependentResources()
 // Initializes view parameters and Constant Buffer Data.
 void WaveFrontRenderer::CreateWindowSizeDependentResources()
 {
-	Size outputSize = m_deviceResources->GetOutputSize();
-	float aspectRatio = outputSize.Width / outputSize.Height;
-	float fovAngleY = 70.0f * XM_PI / 180.0f;
-
-	if (aspectRatio < 1.0f)
-		fovAngleY *= 2.0f;
-
 	// Perspective Projection Matrix.
-	XMMATRIX perspectiveMatrix = XMMatrixPerspectiveFovRH(
-		fovAngleY,
-		aspectRatio,
-		0.01f,
-		100.0f
-	);
+	XMMATRIX perspectiveMatrix = XMMATRIX(
+		1.35799503f, 0.00000000f, 0.00000000f, 0.00000000f,
+		0.00000000f, 2.41421342f, 0.00000000f, 0.00000000f,
+		0.00000000f, 0.00000000f, -1.00039995f, -0.02000000f,
+		0.00000000f, 0.00000000f, -1.00000000f, 0.00000000f);
 
-	XMStoreFloat4x4(&m_constantBufferData.projection, XMMatrixTranspose(perspectiveMatrix));
+	XMStoreFloat4x4(&m_constantBufferData.projection, perspectiveMatrix);
 
 	// View Matrix
-	static const XMVECTORF32 eye = { 1.0f, 0.7f, 0.1, 0.0f };
-	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
-	static const XMVECTORF32 up = { 0.0f,  1.0f, 0.0f, 0.0f };
+	XMMATRIX viewMatrix = XMMATRIX(
+		-0.99464583f, 0.02677041f, 0.09981402f, 0.08252801f,
+		-0.02677039f, 0.86614811f, -0.49907005f, -0.03095605f,
+		-0.09981401f, -0.49907011f, -0.86079401f, -0.33629605f,
+		0.00000000f, 0.00000000f, 0.00000000f, 1.00000000f);
 
-	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtRH(eye, at, up)));
+	XMStoreFloat4x4(&m_constantBufferData.view, viewMatrix);
 }
 
 // Release memory
